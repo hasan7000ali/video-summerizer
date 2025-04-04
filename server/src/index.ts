@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import Logger, { stream } from './utils/logger';
+import { errorResponse } from './utils/response';
+import healthRoutes from './routes/health.routes';
 
 // Load environment variables
 dotenv.config();
@@ -22,19 +24,19 @@ app.use(morgan('combined', { stream })); // HTTP request logging with our custom
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  Logger.info('Health check endpoint called');
-  res.status(200).json({ status: 'ok' });
-});
+// Routes
+app.use('/', healthRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   Logger.error(`Error: ${err.message}`, { stack: err.stack });
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+  errorResponse(
+    res,
+    'Internal Server Error',
+    500,
+    'INTERNAL_SERVER_ERROR',
+    process.env.NODE_ENV === 'development' ? { stack: err.stack } : undefined
+  );
 });
 
 // Start server

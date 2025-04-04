@@ -1,7 +1,9 @@
+
+import { errorResponse } from '../utils/response';
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key_here';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 declare global {
   namespace Express {
@@ -21,10 +23,13 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
       throw new Error('No token provided');
     }
 
+    if (!JWT_SECRET) {
+      throw new Error('JWT_SECRET is not defined');
+    }
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
     req.user = { id: decoded.userId };
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Please authenticate' });
+    errorResponse(res, 'Please authenticate', 401, 'AUTHENTICATION_ERROR');
   }
 }; 

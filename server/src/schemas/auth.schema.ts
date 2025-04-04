@@ -9,12 +9,19 @@ const passwordSchema = z
   .regex(/[0-9]/, 'Password must contain at least one number')
   .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character');
 
+// Common OTP validation
+const otpSchema = z
+  .string()
+  .length(6, 'OTP must be exactly 6 digits')
+  .regex(/^\d{6}$/, 'OTP must contain only digits');
+
 // Register schema
 export const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
     password: passwordSchema,
-    name: z.string().min(2, 'Name must be at least 2 characters long'),
+    firstName: z.string().min(2, 'First name must be at least 2 characters long').optional(),
+    lastName: z.string().min(2, 'Last name must be at least 2 characters long').optional(),
   }),
 });
 
@@ -29,7 +36,8 @@ export const loginSchema = z.object({
 // Email verification schema
 export const verifyEmailSchema = z.object({
   body: z.object({
-    token: z.string().min(1, 'Verification token is required'),
+    email: z.string().email('Invalid email address'),
+    otp: otpSchema,
   }),
 });
 
@@ -43,7 +51,8 @@ export const requestPasswordResetSchema = z.object({
 // Password reset schema
 export const resetPasswordSchema = z.object({
   body: z.object({
-    token: z.string().min(1, 'Reset token is required'),
+    email: z.string().email('Invalid email address'),
+    otp: otpSchema,
     password: passwordSchema,
   }),
 });

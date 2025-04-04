@@ -1,0 +1,57 @@
+@baseUrl = http://localhost:3000
+@authToken = {{login.response.body.data.token}}
+
+### Register User
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!@#",
+    "name": "Test User"
+}
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!@#"
+}
+
+### Verify Email
+POST {{baseUrl}}/api/auth/verify-email
+Content-Type: application/json
+
+{
+    "token": "your-verification-token"
+}
+
+### Request Password Reset
+POST {{baseUrl}}/api/auth/request-password-reset
+Content-Type: application/json
+
+{
+    "email": "test@example.com"
+}
+
+### Reset Password
+POST {{baseUrl}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+    "token": "your-reset-token",
+    "password": "NewTest123!@#"
+}
+
+### Change Password (Protected Route)
+POST {{baseUrl}}/api/auth/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "currentPassword": "Test123!@#",
+    "newPassword": "NewTest123!@#"
+}

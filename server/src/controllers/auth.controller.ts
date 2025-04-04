@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { errorResponse } from '../utils/response';
+import { errorResponse, successResponse } from '../utils/response';
 import { AppError } from '../utils/AppError';
 
 const authService = new AuthService();
@@ -10,7 +10,7 @@ export class AuthController {
     try {
       const { email, password, firstName, lastName } = req.body;
       const result = await authService.register(email, password, firstName, lastName);
-      res.status(201).json(result);
+      successResponse(res, result, 'Registration successful', 201);
     } catch (error: any) {
       errorResponse(
         res,
@@ -26,7 +26,7 @@ export class AuthController {
     try {
       const { email, password } = req.body;
       const result = await authService.login(email, password);
-      res.json(result);
+      successResponse(res, result, 'Login successful', 200);
     } catch (error: any) {
       errorResponse(
         res,
@@ -40,15 +40,20 @@ export class AuthController {
 
   async verifyEmail(req: Request, res: Response) {
     try {
-      const { userId, otp } = req.body;
-      const result = await authService.verifyEmail(userId, otp);
-      res.json(result);
+      const { email, otp } = req.body;
+      const result = await authService.verifyEmail(email, otp);
+      successResponse(
+        res,
+        result.user,
+        result.message,
+        200
+      );
     } catch (error: any) {
       errorResponse(
         res,
         error.message,
-        400,
-        'VERIFICATION_ERROR',
+        error.statusCode || 400,
+        error.code || 'VERIFICATION_ERROR',
         process.env.NODE_ENV === 'development' ? { stack: error.stack } : undefined
       );
     }
@@ -58,7 +63,7 @@ export class AuthController {
     try {
       const { email } = req.body;
       const result = await authService.requestPasswordReset(email);
-      res.json(result);
+      successResponse(res, result, 'Password reset request successful', 200);
     } catch (error: any) {
       errorResponse(
         res,
@@ -74,7 +79,7 @@ export class AuthController {
     try {
       const { email, otp, newPassword } = req.body;
       const result = await authService.resetPassword(email, otp, newPassword);
-      res.json(result);
+      successResponse(res, result, 'Password reset successful', 200);
     } catch (error: any) {
       errorResponse(
         res,
@@ -96,7 +101,7 @@ export class AuthController {
 
       const { currentPassword, newPassword } = req.body;
       const result = await authService.changePassword(userId, currentPassword, newPassword);
-      res.json(result);
+      successResponse(res, result, 'Password changed successfully', 200);
     } catch (error: any) {
       if (error instanceof AppError) {
         errorResponse(

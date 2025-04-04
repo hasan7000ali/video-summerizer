@@ -27,7 +27,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/', healthRoutes);
+app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 
 // 404 Error Handler

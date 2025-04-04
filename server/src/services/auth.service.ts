@@ -112,11 +112,24 @@ export class AuthService {
   }
 
   // Verify email with OTP
-  async verifyEmail(userId: string, otp: string) {
+  async verifyEmail(email: string, otp: string) {
     try {
+      // Validate OTP format
+      if (!/^\d{6}$/.test(otp)) {
+        throw new AppError('Invalid OTP format', 400, 'VERIFICATION_ERROR');
+      }
+
+      const user = await prisma.user.findUnique({ 
+        where: { email } 
+      });
+      
+      if (!user) {
+        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+      }
+
       const userOTP = await prisma.oTP.findFirst({
         where: {
-          userId,
+          userId: user.id,
           code: otp,
           type: OTPType.VERIFICATION,
           expiresAt: { gt: new Date() },
@@ -128,13 +141,21 @@ export class AuthService {
       }
 
       await prisma.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: { isVerified: true },
       });
 
       await prisma.oTP.delete({ where: { id: userOTP.id } });
 
-      return { message: 'Email verified successfully' };
+      return { 
+        message: 'Email verified successfully',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      };
     } catch (error: any) {
       if (error instanceof AppError) {
         throw error;

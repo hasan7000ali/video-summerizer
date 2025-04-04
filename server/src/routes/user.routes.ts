@@ -8,7 +8,7 @@ const router = Router();
 const userController = new UserController();
 
 // Protected routes
-router.get('/', authMiddleware, userController.getUser);
-router.patch('/', authMiddleware, validate(updateUserSchema), userController.updateUser);
+router.get('/me', authMiddleware, userController.getUser);
+router.patch('/me', authMiddleware, validate(updateUserSchema), userController.updateUser);
 
 export default router; 

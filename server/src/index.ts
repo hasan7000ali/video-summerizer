@@ -5,8 +5,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import Logger, { stream } from './utils/logger';
 import { errorResponse } from './utils/response';
-import healthRoutes from './routes/health.routes';
-import authRoutes from './routes/auth.routes';
+import routes from './routes';
 import { AppError } from './utils/AppError';
 
 // Load environment variables
@@ -26,9 +25,8 @@ app.use(morgan('combined', { stream })); // HTTP request logging with our custom
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
-app.use('/api', healthRoutes);
-app.use('/api/auth', authRoutes);
+// API Routes
+app.use('/api', routes);
 
 // 404 Error Handler
 app.use((req, res, next) => {

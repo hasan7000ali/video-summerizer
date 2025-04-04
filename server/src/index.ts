@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import Logger, { stream } from './utils/logger';
 import { errorResponse } from './utils/response';
 import healthRoutes from './routes/health.routes';
+import authRoutes from './routes/auth.routes';
 import { AppError } from './utils/AppError';
 
 // Load environment variables
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/', healthRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404 Error Handler
 app.use((req, res, next) => {

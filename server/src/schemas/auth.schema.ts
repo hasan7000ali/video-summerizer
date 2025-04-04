@@ -53,7 +53,7 @@ export const resetPasswordSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
     otp: otpSchema,
-    password: passwordSchema,
+    newPassword: passwordSchema,
   }),
 });
 

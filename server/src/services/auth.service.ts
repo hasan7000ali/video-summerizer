@@ -46,8 +46,8 @@ export class AuthService {
         data: {
           email,
           password: hashedPassword,
-          firstName,
-          lastName,
+          firstName: firstName || null,
+          lastName: lastName || null,
         },
       });
 
@@ -64,7 +64,15 @@ export class AuthService {
 
       await sendOTPEmail(email, otp, OTPType.VERIFICATION);
 
-      return { message: 'Registration successful. Please check your email for verification OTP.' };
+      return { 
+        message: 'Registration successful. Please check your email for verification OTP.',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      };
     } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
@@ -207,6 +215,16 @@ export class AuthService {
   // Reset password with OTP
   async resetPassword(email: string, otp: string, newPassword: string) {
     try {
+      // Validate OTP format
+      if (!/^\d{6}$/.test(otp)) {
+        throw new AppError('Invalid OTP format', 400, 'PASSWORD_RESET_ERROR');
+      }
+
+      // Validate password format
+      if (!newPassword || typeof newPassword !== 'string') {
+        throw new AppError('Invalid password format', 400, 'PASSWORD_RESET_ERROR');
+      }
+
       const user = await prisma.user.findUnique({ where: { email } });
       
       if (!user) {
@@ -226,15 +244,27 @@ export class AuthService {
         throw new AppError('Invalid or expired OTP', 400, 'PASSWORD_RESET_ERROR');
       }
 
+      // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Update user's password
       await prisma.user.update({
         where: { id: user.id },
         data: { password: hashedPassword },
       });
 
+      // Delete the used OTP
       await prisma.oTP.delete({ where: { id: userOTP.id } });
 
-      return { message: 'Password reset successful' };
+      return { 
+        message: 'Password reset successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      };
     } catch (error: any) {
       if (error instanceof AppError) {
         throw error;

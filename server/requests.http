@@ -8,7 +8,8 @@ Content-Type: application/json
 {
     "email": "test@example.com",
     "password": "Test123!@#",
-    "name": "Test User"
+    "firstName": "Test",
+    "lastName": "User"
 }
 
 ### Login
@@ -26,7 +27,8 @@ POST {{baseUrl}}/api/auth/verify-email
 Content-Type: application/json
 
 {
-    "token": "your-verification-token"
+    "email": "test@example.com",
+    "otp": "689603"
 }
 
 ### Request Password Reset
@@ -42,8 +44,9 @@ POST {{baseUrl}}/api/auth/reset-password
 Content-Type: application/json
 
 {
-    "token": "your-reset-token",
-    "password": "NewTest123!@#"
+    "email": "test@example.com",
+    "otp": "816479",
+    "newPassword": "NewTest123!@#"
 }
 
 ### Change Password (Protected Route)

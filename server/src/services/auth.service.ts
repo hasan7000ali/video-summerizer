@@ -10,8 +10,34 @@ export class AuthService {
   async register(email: string, password: string, firstName?: string, lastName?: string) {
     try {
       const existingUser = await prisma.user.findUnique({ where: { email } });
+      
       if (existingUser) {
-        throw new AppError('Email already registered', 400, 'REGISTRATION_ERROR');
+        if (existingUser.isVerified) {
+          throw new AppError('Email already registered', 400, 'REGISTRATION_ERROR');
+        }
+
+        // Delete any existing OTPs for this user
+        await prisma.oTP.deleteMany({
+          where: {
+            userId: existingUser.id,
+            type: OTPType.VERIFICATION,
+          },
+        });
+
+        // Generate and send new verification OTP
+        const otp = generateOTP();
+        await prisma.oTP.create({
+          data: {
+            code: otp,
+            userId: existingUser.id,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+            type: OTPType.VERIFICATION,
+          },
+        });
+
+        await sendOTPEmail(email, otp, OTPType.VERIFICATION);
+
+        return { message: 'Verification OTP resent. Please check your email.' };
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);

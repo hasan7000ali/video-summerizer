@@ -23,6 +23,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   otps          OTP[]
+  videos        Video[]
 }
 
 model OTP {
@@ -40,4 +41,50 @@ model OTP {
 enum OTPType {
   VERIFICATION
   PASSWORD_RESET
+}
+
+model Video {
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  fileName        String
+  fileKey         String    @unique // S3 object key
+  fileUrl         String?   // Generated presigned URL or public URL
+  fileSize        Int       // Size in bytes
+  duration        Int?      // Duration in seconds
+  status          VideoStatus @default(PENDING)
+  thumbnailUrl    String?
+  mimeType        String
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  processingError String?
+  isPublic        Boolean   @default(false)
+  summary         VideoSummary?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model VideoSummary {
+  id              String    @id @default(uuid())
+  videoId         String    @unique
+  video           Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  summaryText     String
+  keyPoints       String[]
+  transcriptUrl   String?   // URL to transcript file in S3
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([videoId])
+}
+
+enum VideoStatus {
+  PENDING      // Initial upload
+  UPLOADING    // Currently uploading
+  PROCESSING   // Video being processed
+  READY        // Ready to view
+  FAILED       // Processing failed
+  DELETED      // Soft deleted
 }

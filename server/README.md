@@ -187,6 +187,68 @@ All endpoints are prefixed with `/api`
   ```
 - **Response**: Updated user details
 
+### Video Endpoints
+
+#### Create Video Upload
+- **POST** `/videos`
+- **Description**: Create a new video entry and get a direct upload URL
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "title": "My Awesome Video",
+    "description": "This is a description of my video",
+    "fileName": "my-video.mp4",
+    "fileSize": 15000000,
+    "mimeType": "video/mp4"
+  }
+  ```
+- **Response**: Video entry and presigned upload URL
+
+#### Get All Videos
+- **GET** `/videos`
+- **Description**: Get all videos for the current user
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: List of videos
+
+#### Get Video by ID
+- **GET** `/videos/:id`
+- **Description**: Get details for a specific video
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: Video details including presigned download URL if ready
+
+#### Update Video
+- **PATCH** `/videos/:id`
+- **Description**: Update video metadata
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "title": "Updated Title",
+    "description": "Updated description",
+    "isPublic": true
+  }
+  ```
+- **Response**: Updated video details
+
+#### Delete Video
+- **DELETE** `/videos/:id`
+- **Description**: Delete a video
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: Deletion confirmation
+
+#### Get Upload URL
+- **GET** `/videos/:id/upload-url`
+- **Description**: Get a new presigned URL for retrying uploads
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: Presigned upload URL
+
+#### Confirm Upload
+- **POST** `/videos/:id/confirm`
+- **Description**: Confirm that a video upload has completed
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: Updated video status and download URL
+
 ### Health Check
 - **GET** `/health`
 - **Description**: Check API health status
@@ -196,6 +258,113 @@ All endpoints are prefixed with `/api`
 - **GET** `/`
 - **Description**: Get API documentation and available endpoints
 - **Response**: API documentation with all available endpoints
+
+## Direct File Upload with Uppy
+
+The server supports direct file uploads to S3 using Uppy. Follow these steps to implement this on the frontend:
+
+1. Install Uppy and AWS S3 plugin:
+   ```bash
+   npm install @uppy/core @uppy/dashboard @uppy/aws-s3
+   ```
+
+2. Configure Uppy in your frontend:
+   ```javascript
+   import Uppy from '@uppy/core';
+   import Dashboard from '@uppy/dashboard';
+   import AwsS3 from '@uppy/aws-s3';
+   import '@uppy/core/dist/style.css';
+   import '@uppy/dashboard/dist/style.css';
+
+   // Initialize Uppy
+   const uppy = new Uppy({
+     debug: true,
+     autoProceed: false,
+   })
+     .use(Dashboard, {
+       inline: true,
+       target: '#uppy-dashboard',
+       showProgressDetails: true,
+     })
+     .use(AwsS3, {
+       companionUrl: '/', // Not used for direct uploads
+     });
+
+   // Handle the file selection
+   uppy.on('file-added', (file) => {
+     // First, create a video entry in the API
+     createVideoEntry(file)
+       .then(response => {
+         // Attach the presigned URL to the file
+         file.meta.key = response.data.video.fileKey;
+         file.meta.uploadURL = response.data.uploadUrl;
+       });
+   });
+
+   // Configure for S3 direct upload
+   uppy.on('upload', (data) => {
+     // For each file, get the prepared upload URL
+     const promises = data.fileIDs.map(fileID => {
+       const file = uppy.getFile(fileID);
+       return {
+         url: file.meta.uploadURL,
+         method: 'PUT',
+         headers: {
+           'Content-Type': file.type,
+         },
+       };
+     });
+     
+     return promises;
+   });
+
+   // Handle upload completion
+   uppy.on('upload-success', (file, response) => {
+     // Confirm the upload with your API
+     confirmUpload(file.meta.videoId);
+   });
+
+   // Helper function to create video entry
+   async function createVideoEntry(file) {
+     const response = await fetch('/api/videos', {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${yourAuthToken}`,
+       },
+       body: JSON.stringify({
+         title: file.name,
+         description: '',
+         fileName: file.name,
+         fileSize: file.size,
+         mimeType: file.type,
+       }),
+     });
+     
+     const json = await response.json();
+     
+     // Save video ID for later confirmation
+     file.meta.videoId = json.data.video.id;
+     
+     return json;
+   }
+
+   // Helper function to confirm upload
+   async function confirmUpload(videoId) {
+     await fetch(`/api/videos/${videoId}/confirm`, {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${yourAuthToken}`,
+       },
+     });
+   }
+   ```
+
+3. Add the Uppy dashboard to your HTML:
+   ```html
+   <div id="uppy-dashboard"></div>
+   ```
 
 ## Response Format
 

@@ -2,6 +2,7 @@
 @authToken = {{login.response.body.data.token}}
 
 ### Register User
+# @name register
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
@@ -28,7 +29,7 @@ Content-Type: application/json
 
 {
     "email": "test@example.com",
-    "otp": "689603"
+    "otp": "123456"
 }
 
 ### Request Password Reset
@@ -45,11 +46,11 @@ Content-Type: application/json
 
 {
     "email": "test@example.com",
-    "otp": "816479",
-    "newPassword": "NewTest123!@#"
+    "otp": "123456",
+    "password": "NewTest123!@#"
 }
 
-### Change Password (Protected Route)
+### Change Password
 POST {{baseUrl}}/api/auth/change-password
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
@@ -58,3 +59,69 @@ Content-Type: application/json
     "currentPassword": "Test123!@#",
     "newPassword": "NewTest123!@#"
 }
+
+### Get User Profile
+GET {{baseUrl}}/api/user/me
+Authorization: Bearer {{authToken}}
+
+### Update User Profile
+PATCH {{baseUrl}}/api/user/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "firstName": "Updated",
+    "lastName": "Name"
+}
+
+### VIDEO ENDPOINTS ###
+
+### Create a new video
+# @name createVideo
+POST {{baseUrl}}/api/videos
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "title": "Test Video",
+    "description": "This is a test video for upload",
+    "fileName": "testvideo.mp4",
+    "fileSize": 1000000,
+    "mimeType": "video/mp4"
+}
+
+### Get Upload URL for existing video
+# @name getUploadUrl
+GET {{baseUrl}}/api/videos/{{createVideo.response.body.data.video.id}}/upload-url
+Authorization: Bearer {{authToken}}
+
+### Confirm upload completion
+# @name confirmUpload
+POST {{baseUrl}}/api/videos/{{createVideo.response.body.data.video.id}}/confirm
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{}
+
+### Get all user videos
+GET {{baseUrl}}/api/videos
+Authorization: Bearer {{authToken}}
+
+### Get a specific video
+GET {{baseUrl}}/api/videos/{{createVideo.response.body.data.video.id}}
+Authorization: Bearer {{authToken}}
+
+### Update video details
+PATCH {{baseUrl}}/api/videos/{{createVideo.response.body.data.video.id}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "title": "Updated Video Title",
+    "description": "Updated video description",
+    "isPublic": true
+}
+
+### Delete a video
+DELETE {{baseUrl}}/api/videos/{{createVideo.response.body.data.video.id}}
+Authorization: Bearer {{authToken}}

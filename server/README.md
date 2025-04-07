@@ -86,14 +86,143 @@
 
 ## API Endpoints
 
-### Authentication
+### Base URL
+All endpoints are prefixed with `/api`
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/verify-email` - Verify email with OTP
-- `POST /api/auth/request-password-reset` - Request password reset
-- `POST /api/auth/reset-password` - Reset password with OTP
-- `POST /api/auth/change-password` - Change password (protected route)
+### Authentication Endpoints
+
+#### Register User
+- **POST** `/auth/register`
+- **Description**: Register a new user
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "Password123!",
+    "firstName": "John",
+    "lastName": "Doe"
+  }
+  ```
+- **Response**: User details and verification instructions
+
+#### Login
+- **POST** `/auth/login`
+- **Description**: Authenticate user and get JWT token
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "Password123!"
+  }
+  ```
+- **Response**: JWT token and user details
+
+#### Verify Email
+- **POST** `/auth/verify-email`
+- **Description**: Verify user email with OTP
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "123456"
+  }
+  ```
+- **Response**: Verification status
+
+#### Request Password Reset
+- **POST** `/auth/request-password-reset`
+- **Description**: Request password reset OTP
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com"
+  }
+  ```
+- **Response**: Reset instructions
+
+#### Reset Password
+- **POST** `/auth/reset-password`
+- **Description**: Reset password using OTP
+- **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "123456",
+    "password": "NewPassword123!"
+  }
+  ```
+- **Response**: Password reset status
+
+#### Change Password
+- **POST** `/auth/change-password`
+- **Description**: Change password (protected route)
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "currentPassword": "CurrentPassword123!",
+    "newPassword": "NewPassword123!"
+  }
+  ```
+- **Response**: Password change status
+
+### User Endpoints
+
+#### Get User Details
+- **GET** `/user/me`
+- **Description**: Get current user details
+- **Headers**: `Authorization: Bearer <token>`
+- **Response**: User details
+
+#### Update User Details
+- **PATCH** `/user/me`
+- **Description**: Update current user details
+- **Headers**: `Authorization: Bearer <token>`
+- **Request Body**:
+  ```json
+  {
+    "firstName": "New First Name",
+    "lastName": "New Last Name"
+  }
+  ```
+- **Response**: Updated user details
+
+### Health Check
+- **GET** `/health`
+- **Description**: Check API health status
+- **Response**: API status and version
+
+### API Documentation
+- **GET** `/`
+- **Description**: Get API documentation and available endpoints
+- **Response**: API documentation with all available endpoints
+
+## Response Format
+
+All API responses follow this format:
+```json
+{
+  "success": true,
+  "message": "Operation message",
+  "data": {
+    // Response data
+  }
+}
+```
+
+## Error Response Format
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "error": {
+    "code": "ERROR_CODE",
+    "details": {
+      // Error details (in development only)
+    }
+  }
+}
+```
 
 ## Environment Variables
 

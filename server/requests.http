@@ -46,8 +46,8 @@ Content-Type: application/json
 
 {
     "email": "test@example.com",
-    "otp": "123456",
-    "password": "NewTest123!@#"
+    "otp": "193527",
+    "newPassword": "Test123!@#"
 }
 
 ### Change Password
@@ -86,7 +86,7 @@ Content-Type: application/json
     "title": "Test Video",
     "description": "This is a test video for upload",
     "fileName": "testvideo.mp4",
-    "fileSize": 1000000,
+    "fileSize": 1000,
     "mimeType": "video/mp4"
 }
 

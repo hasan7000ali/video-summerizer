@@ -7,6 +7,15 @@ export class VideoController {
 
   constructor() {
     this.videoService = new VideoService();
+    
+    // Bind methods to this instance
+    this.createVideo = this.createVideo.bind(this);
+    this.getVideo = this.getVideo.bind(this);
+    this.getUserVideos = this.getUserVideos.bind(this);
+    this.updateVideo = this.updateVideo.bind(this);
+    this.deleteVideo = this.deleteVideo.bind(this);
+    this.getUploadUrl = this.getUploadUrl.bind(this);
+    this.confirmUpload = this.confirmUpload.bind(this);
   }
 
   // Create a new video upload request
